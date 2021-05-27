@@ -1,0 +1,112 @@
+timeout: 900s
+steps:
+  - id: build and push app docker image
+    name: gcr.io/kaniko-project/executor:latest
+    args:
+      - --destination=gcr.io/$PROJECT_ID/app:$COMMIT_SHA
+      - --dockerfile=Dockerfile
+      - --cache=true
+      - --cache-ttl=6h
+    waitFor: ['-']
+  - id: access the id_github file from secret manager
+    name: gcr.io/cloud-builders/gcloud
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        gcloud secrets versions access latest --secret=id_github > /root/.ssh/id_github
+    volumes:
+      - name: 'ssh'
+        path: /root/.ssh
+  - id: set up git with key
+    name: 'gcr.io/cloud-builders/git'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        chmod 600 /root/.ssh/id_github
+        cat <<EOF >/root/.ssh/config
+        Hostname github.com
+        IdentityFile /root/.ssh/id_github
+        EOF
+        ssh-keyscan -t rsa github.com > /root/.ssh/known_hosts
+    volumes:
+      - name: 'ssh'
+        path: /root/.ssh
+  - id: connect to the repository
+    name: 'gcr.io/cloud-builders/git'
+    args:
+      - clone
+      - --recurse-submodules
+      - git@github.com:${_GITHUB_ACCOUNT}/${_MANIFEST_REPOSITORY}.git
+    volumes:
+      - name: 'ssh'
+        path: /root/.ssh
+  - id: switch branch
+    name: 'gcr.io/cloud-builders/gcloud'
+    dir: ${_MANIFEST_REPOSITORY}
+    entrypoint: /bin/sh
+    args:
+      - '-c'
+      - |
+        set -x && \
+        git config --global user.email $(git log --format='%an <%ae>' -n 1 HEAD | sed 's/.*\<\([^>]*\)\>.*/\1/g') && \
+        git fetch origin ${_TARGET_BRANCH} && git switch ${_TARGET_BRANCH} && \
+        git fetch origin ${_DEFAULT_BRANCH} && git merge --ff origin/${_DEFAULT_BRANCH}
+    volumes:
+      - name: 'ssh'
+        path: /root/.ssh
+  - id: generate manifest for grpc-gateway
+    name: 'gcr.io/cloud-builders/gcloud'
+    dir: ${_MANIFEST_REPOSITORY}/${_GRPC_GATEWAY_MANIFEST_DIR}
+    entrypoint: /bin/sh
+    args:
+      - '-c'
+      - |
+        set -x && \
+        sed "s/PROJECT_ID/$PROJECT_ID/g" ${_GRPC_GATEWAY_TEMPLATE_FILE} | \
+        sed "s/COMMIT_SHA/$COMMIT_SHA/g" >| ${_GRPC_GATEWAY_GENERATE_FILE}
+    waitFor: ['switch branch']
+  - id: generate manifest for grpc-server
+    name: 'gcr.io/cloud-builders/gcloud'
+    dir: ${_MANIFEST_REPOSITORY}/${_GRPC_SERVER_MANIFEST_DIR}
+    entrypoint: /bin/sh
+    args:
+      - '-c'
+      - |
+        set -x && \
+        sed "s/PROJECT_ID/$PROJECT_ID/g" ${_GRPC_SERVER_TEMPLATE_FILE} | \
+        sed "s/COMMIT_SHA/$COMMIT_SHA/g" >| ${_GRPC_SERVER_GENERATE_FILE}
+    waitFor: ['switch branch']
+  - id: push generated manifests to ${_TARGET_BRANCH} branch
+    name: 'gcr.io/cloud-builders/gcloud'
+    dir: ${_MANIFEST_REPOSITORY}
+    entrypoint: /bin/sh
+    args:
+      - '-c'
+      - |
+        set -x && \
+        git add \
+          ${_GRPC_GATEWAY_MANIFEST_DIR}/${_GRPC_GATEWAY_GENERATE_FILE} \
+          ${_GRPC_SERVER_MANIFEST_DIR}/${_GRPC_SERVER_GENERATE_FILE} \
+        git commit \
+        --author="Cloud Build Service Account <***@cloudbuild.gserviceaccount.com>" \
+        -m "Deploying images
+        - gcr.io/$PROJECT_ID/app:$COMMIT_SHA
+        Built from commit $COMMIT_SHA of ${_APP_REPOSITORY} repository" && \
+        git push origin ${_TARGET_BRANCH}
+    volumes:
+      - name: 'ssh'
+        path: /root/.ssh
+substitutions:
+  _GITHUB_ACCOUNT: butterv
+  _APP_REPOSITORY: kubernetes-sample1-app
+  _MANIFEST_REPOSITORY: kubernetes-sample1-manifest
+  _GRPC_GATEWAY_MANIFEST_DIR: k8s/ops/base/gateway
+  _GRPC_GATEWAY_TEMPLATE_FILE: deployment.yaml.tpl
+  _GRPC_GATEWAY_GENERATE_FILE: deployment.yaml
+  _GRPC_SERVER_MANIFEST_DIR: k8s/ops/base/server
+  _GRPC_SERVER_TEMPLATE_FILE: deployment.yaml.tpl
+  _GRPC_SERVER_GENERATE_FILE: deployment.yaml
+#  _DEFAULT_BRANCH: <Defined on the edit page for the Cloud Build trigger>
+#  _TARGET_BRANCH: <Defined on the edit page for the Cloud Build trigger>
