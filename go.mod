@@ -9,9 +9,12 @@ require (
 	github.com/golang/protobuf v1.5.2
 	github.com/golangci/golangci-lint v1.40.1
 	github.com/google/go-cmp v0.5.5
+	github.com/gorilla/handlers v1.5.1
+	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.4.0
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/rs/xid v1.3.0
+	github.com/sirupsen/logrus v1.8.1
 	github.com/skeema/skeema v1.5.1
 	google.golang.org/genproto v0.0.0-20210426193834-eac7f76ac494
 	google.golang.org/grpc v1.37.0
