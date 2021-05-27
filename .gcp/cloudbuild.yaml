@@ -83,6 +83,9 @@ steps:
     volumes:
       - name: 'ssh'
         path: /root/.ssh
+volumes:
+  - name: 'ssh'
+    path: /root/.ssh
 availableSecrets:
   secretManager:
     - versionName: projects/kubernetes-sample1/secrets/id_github/versions/latest
