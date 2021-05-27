@@ -37,7 +37,6 @@ steps:
     name: 'gcr.io/cloud-builders/git'
     args:
       - clone
-      - --recurse-submodules
       - git@github.com:${_GITHUB_ACCOUNT}/${_MANIFEST_REPOSITORY}.git
     volumes:
       - name: 'ssh'
