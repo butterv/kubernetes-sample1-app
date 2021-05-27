@@ -27,8 +27,7 @@ steps:
         chmod 600 /root/.ssh/id_github
         cat <<EOF >/root/.ssh/config
         Hostname github.com
-        AddKeysToAgent yes
-        UseKeychain yes
+        AddKeysToAgent yess
         IdentityFile /root/.ssh/id_github
         EOF
         ssh-keyscan -t rsa github.com > /root/.ssh/known_hosts
