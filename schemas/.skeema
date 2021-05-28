@@ -1,0 +1,9 @@
+default-character-set=utf8mb4
+default-collation=utf8mb4_general_ci
+generator=skeema:1.5.1-community
+schema=sample
+
+[common]
+flavor=mysql:5.7
+host=127.0.0.1
+port=3306

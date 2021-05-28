@@ -31,7 +31,7 @@ func NewHealthClient(cc grpc.ClientConnInterface) HealthClient {
 
 func (c *healthClient) Check(ctx context.Context, in *HealthCheckRequest, opts ...grpc.CallOption) (*HealthCheckResponse, error) {
 	out := new(HealthCheckResponse)
-	err := c.cc.Invoke(ctx, "/health.Health/Check", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/grpc.health.v1.Health/Check", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -39,21 +39,19 @@ func (c *healthClient) Check(ctx context.Context, in *HealthCheckRequest, opts .
 }
 
 // HealthServer is the server API for Health service.
-// All implementations must embed UnimplementedHealthServer
+// All implementations should embed UnimplementedHealthServer
 // for forward compatibility
 type HealthServer interface {
 	Check(context.Context, *HealthCheckRequest) (*HealthCheckResponse, error)
-	mustEmbedUnimplementedHealthServer()
 }
 
-// UnimplementedHealthServer must be embedded to have forward compatible implementations.
+// UnimplementedHealthServer should be embedded to have forward compatible implementations.
 type UnimplementedHealthServer struct {
 }
 
 func (UnimplementedHealthServer) Check(context.Context, *HealthCheckRequest) (*HealthCheckResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Check not implemented")
 }
-func (UnimplementedHealthServer) mustEmbedUnimplementedHealthServer() {}
 
 // UnsafeHealthServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to HealthServer will
@@ -76,7 +74,7 @@ func _Health_Check_Handler(srv interface{}, ctx context.Context, dec func(interf
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/health.Health/Check",
+		FullMethod: "/grpc.health.v1.Health/Check",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(HealthServer).Check(ctx, req.(*HealthCheckRequest))
@@ -88,7 +86,7 @@ func _Health_Check_Handler(srv interface{}, ctx context.Context, dec func(interf
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Health_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "health.Health",
+	ServiceName: "grpc.health.v1.Health",
 	HandlerType: (*HealthServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

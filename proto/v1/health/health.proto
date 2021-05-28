@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package health;
+package grpc.health.v1;
 option go_package = "github.com/butterv/kubernetes-sample1-app/app/gen/go/v1/health";
 
 import "google/api/annotations.proto";
@@ -8,7 +8,7 @@ import "google/api/annotations.proto";
 service Health {
     rpc Check(HealthCheckRequest) returns (HealthCheckResponse) {
         option (google.api.http) = {
-            get: "/v1/healthz"
+            get: "/v1/health"
         };
     }
 }

@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"net"
 	"os"
 
+	_ "github.com/go-sql-driver/mysql"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpc_validator "github.com/grpc-ecosystem/go-grpc-middleware/validator"
@@ -22,12 +24,15 @@ import (
 )
 
 func main() {
-	mysqlCon := os.Getenv("MYSQL_CONNECTION")
-	if mysqlCon == "" {
-		logrus.Fatal("MYSQL_CONNECTION is empty")
-	}
+	dbHost := os.Getenv("DB_HOST")
+	dbUser := os.Getenv("DB_USER")
+	dbPassword := os.Getenv("DB_PASS")
+	dbPort := os.Getenv("DB_PORT")
+	dbName := os.Getenv("DB_NAME")
 
-	db := connectDB(mysqlCon)
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", dbUser, dbPassword, dbHost, dbPort, dbName)
+
+	db := connectDB(dsn)
 	repo := persistence.New(db)
 
 	listenPort, err := net.Listen("tcp", ":8080")

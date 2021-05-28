@@ -33,7 +33,7 @@ func NewUsersClient(cc grpc.ClientConnInterface) UsersClient {
 
 func (c *usersClient) GetUser(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*GetUserResponse, error) {
 	out := new(GetUserResponse)
-	err := c.cc.Invoke(ctx, "/user.Users/GetUser", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/grpc.health.v1.Users/GetUser", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +42,7 @@ func (c *usersClient) GetUser(ctx context.Context, in *GetUserRequest, opts ...g
 
 func (c *usersClient) GetUsers(ctx context.Context, in *GetUsersRequest, opts ...grpc.CallOption) (*GetUsersResponse, error) {
 	out := new(GetUsersResponse)
-	err := c.cc.Invoke(ctx, "/user.Users/GetUsers", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/grpc.health.v1.Users/GetUsers", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func (c *usersClient) GetUsers(ctx context.Context, in *GetUsersRequest, opts ..
 
 func (c *usersClient) CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*CreateUserResponse, error) {
 	out := new(CreateUserResponse)
-	err := c.cc.Invoke(ctx, "/user.Users/CreateUser", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/grpc.health.v1.Users/CreateUser", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -59,16 +59,15 @@ func (c *usersClient) CreateUser(ctx context.Context, in *CreateUserRequest, opt
 }
 
 // UsersServer is the server API for Users service.
-// All implementations must embed UnimplementedUsersServer
+// All implementations should embed UnimplementedUsersServer
 // for forward compatibility
 type UsersServer interface {
 	GetUser(context.Context, *GetUserRequest) (*GetUserResponse, error)
 	GetUsers(context.Context, *GetUsersRequest) (*GetUsersResponse, error)
 	CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error)
-	mustEmbedUnimplementedUsersServer()
 }
 
-// UnimplementedUsersServer must be embedded to have forward compatible implementations.
+// UnimplementedUsersServer should be embedded to have forward compatible implementations.
 type UnimplementedUsersServer struct {
 }
 
@@ -81,7 +80,6 @@ func (UnimplementedUsersServer) GetUsers(context.Context, *GetUsersRequest) (*Ge
 func (UnimplementedUsersServer) CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateUser not implemented")
 }
-func (UnimplementedUsersServer) mustEmbedUnimplementedUsersServer() {}
 
 // UnsafeUsersServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to UsersServer will
@@ -104,7 +102,7 @@ func _Users_GetUser_Handler(srv interface{}, ctx context.Context, dec func(inter
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/user.Users/GetUser",
+		FullMethod: "/grpc.health.v1.Users/GetUser",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(UsersServer).GetUser(ctx, req.(*GetUserRequest))
@@ -122,7 +120,7 @@ func _Users_GetUsers_Handler(srv interface{}, ctx context.Context, dec func(inte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/user.Users/GetUsers",
+		FullMethod: "/grpc.health.v1.Users/GetUsers",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(UsersServer).GetUsers(ctx, req.(*GetUsersRequest))
@@ -140,7 +138,7 @@ func _Users_CreateUser_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/user.Users/CreateUser",
+		FullMethod: "/grpc.health.v1.Users/CreateUser",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(UsersServer).CreateUser(ctx, req.(*CreateUserRequest))
@@ -152,7 +150,7 @@ func _Users_CreateUser_Handler(srv interface{}, ctx context.Context, dec func(in
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Users_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "user.Users",
+	ServiceName: "grpc.health.v1.Users",
 	HandlerType: (*UsersServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

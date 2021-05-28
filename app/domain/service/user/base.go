@@ -10,8 +10,6 @@ type userService struct {
 	r repository.Repository
 
 	userIDGenerator model.UserIDGenerator
-
-	pb.UnimplementedUsersServer // embedding
 }
 
 // NewUserService generates the `UsersServer` implementation.

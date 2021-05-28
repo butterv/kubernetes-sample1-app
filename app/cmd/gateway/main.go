@@ -3,17 +3,14 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
+	"log"
 	"net/http"
-
-	"github.com/gorilla/handlers"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/sirupsen/logrus"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/encoding/gzip"
 
 	healthpb "github.com/butterv/kubernetes-sample1-app/app/gen/go/v1/health"
 	userpb "github.com/butterv/kubernetes-sample1-app/app/gen/go/v1/user"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
 )
 
 var (
@@ -30,27 +27,18 @@ func main() {
 
 func run() error {
 	ctx := context.Background()
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
-	mux := runtime.NewServeMux(
-		runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{}),
-	)
+	mux := runtime.NewServeMux()
 
 	if err := registerHandlers(ctx, mux); err != nil {
 		return err
 	}
+	gwServer := &http.Server{
+		Addr:    ":8080",
+		Handler: mux,
+	}
 
-	handler := handlers.CORS(
-		handlers.AllowedOrigins([]string{"*"}),
-		handlers.AllowedMethods([]string{http.MethodPost, http.MethodGet, http.MethodPut, http.MethodDelete}),
-		handlers.AllowedHeaders([]string{"Authorization", "Content-Type", "Accept-Encoding", "Accept"}),
-	)(mux)
-
-	addr := ":8080"
-	fmt.Printf("http server started on %s\n", addr)
-	// Start HTTP server (and proxy calls to gRPC server endpoint)
-	return http.ListenAndServe(addr, handler)
+	log.Println("Serving gRPC-Gateway on http://0.0.0.0:8080")
+	return gwServer.ListenAndServe()
 }
 
 func registerHandlers(ctx context.Context, mux *runtime.ServeMux) error {
@@ -69,7 +57,6 @@ func registerHandlers(ctx context.Context, mux *runtime.ServeMux) error {
 func grpcDialOptions() []grpc.DialOption {
 	opts := []grpc.DialOption{
 		grpc.WithInsecure(),
-		grpc.WithDefaultCallOptions(grpc.UseCompressor(gzip.Name)),
 	}
 
 	return opts

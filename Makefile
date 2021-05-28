@@ -15,11 +15,10 @@ generate-pb:
 			--go_out $(OUTPUT_PATH) \
 			--go_opt paths=source_relative \
 			--go-grpc_out $(OUTPUT_PATH) \
-			--go-grpc_opt paths=source_relative \
+			--go-grpc_opt require_unimplemented_servers=false,paths=source_relative \
 			--grpc-gateway_out $(OUTPUT_PATH) \
 			--grpc-gateway_opt logtostderr=true \
 			--grpc-gateway_opt paths=source_relative \
-			--grpc-gateway_opt generate_unbound_methods=true \
 			--validate_out=paths=source_relative,lang=go:$(OUTPUT_PATH) \
 			$$file; \
 	done
@@ -30,7 +29,7 @@ ifeq ($(tag),)
 	@echo "Usage:"
 	@echo "	$$ make app-build tag=<version>"
 else
-	docker build -f ./Dockerfile -t istsh/gitops-sample-app:${tag} ./
+	docker build -f ./Dockerfile -t butterv/kubernetes-sample1:${tag} ./
 endif
 
 app-push:
@@ -39,31 +38,13 @@ ifeq ($(tag),)
 	@echo "Usage:"
 	@echo "	$$ make app-push tag=<version>"
 else
-	docker push istsh/gitops-sample-app:${tag}
-endif
-
-migration-build:
-ifeq ($(tag),)
-	@echo "Please execute this command with the docker image tag."
-	@echo "Usage:"
-	@echo "	$$ make migration-build tag=<version>"
-else
-	docker build -f ./Dockerfile.migration -t istsh/gitops-sample-migration:${tag} ./
-endif
-
-migration-push:
-ifeq ($(tag),)
-	@echo "Please execute this command with the docker image tag."
-	@echo "Usage:"
-	@echo "	$$ make migration-push tag=<version>"
-else
-	docker push istsh/gitops-sample-migration:${tag}
+	docker push butterv/kubernetes-sample1:${tag}
 endif
 
 skeema-init:
 	@skeema init \
 		-h 127.0.0.1 -p \
-		--schema record \
+		--schema sample \
 		--dir schemas \
 		common # environment name
 
